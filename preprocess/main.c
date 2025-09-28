@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
     for(int i = 0; i < *elementTags_n; i++) {
         for(int n = 0; n < ndof; n++) {
             size_t nodeTag = (*elementNodeTags)[i * ndof + n];
-            (n < ndof - 1) ? fprintf(file, "%zu ", nodeTag) : fprintf(file, "%zu ", nodeTag);
+            (n < ndof - 1) ? fprintf(file, "%zu ", nodeTag) : fprintf(file, "%zu", nodeTag);
         }
         fprintf(file, "\n");
     }
@@ -120,15 +120,15 @@ int main(int argc, char **argv) {
 
         glPushMatrix();
         
-        glBegin(GL_TRIANGLES);
-            glColor3f(0.f, 0.f, 0.f);
-            for(int i = 0; i < *elementTags_n; i++) {
+        for(int i = 0; i < *elementTags_n; i++) {
+            glBegin(GL_TRIANGLES);
+                glColor3f(0.f, 0.f, 0.f);
                 for(int n = 0; n < ndof; n++) {
                     size_t nodeTag = (*elementNodeTags)[i * ndof + n];
                     glVertex2f(coords[(nodeTag - 1) * 3] / 100, coords[(nodeTag - 1) * 3 + 2] / 100);
                 }
-            }
-        glEnd();
+            glEnd();
+        }
         
         glPopMatrix();
         glfwSwapBuffers(window);
