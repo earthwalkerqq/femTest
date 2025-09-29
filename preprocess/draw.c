@@ -1,77 +1,130 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
+
+#define GL_SILENCE_DEPRECATION
+
 #include <GLFW/glfw3.h>
 
-#define DIMENTION 2
+#define WINDOW_WIDTH 600
+#define WINDOW_HEIGHT 500
 
-#define WINDOW_HEGHT 500
-#define WINDOW_WIDTH 400
-
-#ifdef TRIANGLE
-#define NODE_OF_ELEM 3
-#else
-#define NODE_OF_ELEM 3
-#endif
-
-// исправлю!
-
-void drawModel(char *inputFile, int *error) {
-    int nNodes;
-    int nElem;
-
-    FILE *file = fopen(inputFile, "r");
-
-    *error += fscanf("%d", &nNodes) != 1;
-
-    double *dataCoords = (double*)malloc(nNodes * DIMENTION * sizeof(double));
-    double **coords = (double**)malloc(DIMENTION * sizeof(double*));
-    for (int i = 0; i < DIMENTION; i++) coords[i] = dataCoords + i * nNodes;
-
-    for (int i = 0; i < nNodes && !(*error); i++) {
-        double x, y, z;
-        *error += scanf("%lf%lf%lf", &x, &y, &z) != 3;
-        coords[0][i] = x;   coords[1][i] = z;
+int main(int argc, char **argv) {
+    char error = EXIT_SUCCESS;
+    
+    if (argc < 2) {
+        error = EXIT_FAILURE;
+        return error;
     }
 
-    *error += scanf("%d", &nElem) != 1;
+    const int ndof = 3;
 
-    int *dataJt02 = (int*)malloc(NODE_OF_ELEM * nElem * sizeof(int));
-    int **jt02 = (int**)malloc(nElem * sizeof(int**));
-    for (int i = 0; i < nElem; i++) jt02[i] = dataJt02 + i * NODE_OF_ELEM;
+    int nys;
+    int nelem;
 
-    for (int i = 0; i < nElem && !(*error); i++) {
-        *error += scanf("%d%d%d", jt02[i], jt02[i] + 1, jt02[i] + 2) == 3;
+    double **coords = NULL;
+    int **jt03 = NULL;
+
+    double *dataCoords = NULL;
+    int *dataJt03 = NULL;
+
+    FILE *file = fopen(argv[1], "r");
+
+    if (file == NULL) {
+        error = EXIT_FAILURE;
+        return error;
     }
 
-    /* отрисовка */
+    error += fscanf(file, "%d", &nys) != 1;
+
+    if (!error) {
+        dataCoords = (double*)malloc(nys * ndof * sizeof(double));
+        error += dataCoords == NULL;
+        coords = (double**)malloc(nys * sizeof(double*));
+        for (int i = 0; i < nys && !error; i++) {
+            coords[i] = dataCoords + i * ndof;
+        }
+    } else return error;
+
+    assert(!error);
+
+    for (int i = 0; i < nys && !error; i++) {
+        error += fscanf(file, "%lf%lf%lf", coords[i], coords[i] + 1, coords[i] + 2) != 3;
+    }
+
+    error += fscanf(file, "%d", &nelem) != 1;
+
+    if (!error) {
+        dataJt03 = (int*)malloc(nelem * ndof * sizeof(int));
+        error += dataJt03 == NULL;
+        jt03 = (int**)malloc(nelem * sizeof(int*));
+        for (int i = 0; i < nelem && !error; i++) {
+            jt03[i] = dataJt03 + i * ndof;
+        }
+    } else return error;
+
+    assert(!error);
+
+    for (int i = 0; i < nelem && !error; i++) {
+        error += fscanf(file, "%d%d%d", jt03[i], jt03[i] + 1, jt03[i] + 2) != 3;
+    }
+
+    assert(!error);
 
     if (!glfwInit()) {
-        fprintf(stderr, "CAN'T INIT GLFW\n");
-        *error = EXIT_FAILURE;
-        return;
+        error = EXIT_FAILURE;
+        return error;
     }
 
-    GLFWwindow* window = glfwCreatewindow(WINDOW_WIDTH, WINDOW_HEGHT, "Model", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Model", NULL, NULL);
 
     if (!window) {
-        fprintf(stderr, "CAN'T CREATE A WINDOW\n");
-        *error = EXIT_FAILURE;
-        glfwTerminate();
-        return;
+        error = EXIT_FAILURE;
+        return error;
     }
 
     glfwMakeContextCurrent(window);
 
-    while (!glfwWindowShouldClose(window)) {
-        glClearColor(1.f, 1.f, 1.f);
+    while (!glfwWindowShouldClose(window) && !error) {
+        glClearColor(1.f, 1.f, 1.f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         glPushMatrix();
-        
-        for (int i = 0; i < ) {
+
+        glPointSize(5.0f);
+
+        for (int i = 0; i < nelem; i++) {
             glBegin(GL_TRIANGLES);
-                
+                float r_color = (i % 10) / 10.;
+                printf("%f\n", r_color);
+                glColor3f(r_color, 0.f, 0.f);
+                for (int j = 0; j < ndof; j++) {
+                    int elem = jt03[i][j];
+                    glVertex2f(coords[elem - 1][0] / 100, coords[elem - 1][2] / 100);
+                }
             glEnd();
+
+            for (int j = 0; j < 3; j++) {
+                glBegin(GL_LINES);
+                    glColor3f(1.f, 1.f, 1.f);
+                    int point1 = jt03[i][j] - 1;
+                    glVertex2f(coords[point1][0], coords[point1][2]);
+                    int point2 = (j == 2) ? jt03[i][0] - 1: jt03[i][j + 1] - 1;
+                    glVertex2f(coords[point2][0], coords[point2][2]);
+                glEnd();
+            }
+        }
+
+        for (int i = 0; i < nelem; i++ ){
+            for (int j = 0; j < 3; j++) {
+                glBegin(GL_LINES);
+                    glColor3f(1.f, 1.f, 1.f);
+                    int point1 = jt03[i][j] - 1;
+                    glVertex2f(coords[point1][0], coords[point1][2]);
+                    int point2 = jt03[i][(j + 1) % 3] - 1;
+                    glVertex2f(coords[point2][0], coords[point2][2]);
+                glEnd();
+            }
         }
         
         glPopMatrix();
@@ -83,12 +136,13 @@ void drawModel(char *inputFile, int *error) {
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    /*-------------------*/
-
     if (dataCoords != NULL) free(dataCoords);
-    if (dataJt02 != NULL) free(dataJt02);
     if (coords != NULL) free(coords);
-    if (jt02 != NULL) free(jt02);
+
+    if (dataJt03 != NULL) free(dataJt03);
+    if (jt03 != NULL) free(jt03);
 
     fclose(file);
+
+    return EXIT_SUCCESS;
 }
