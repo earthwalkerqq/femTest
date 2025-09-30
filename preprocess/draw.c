@@ -30,16 +30,16 @@ void key_callback(GLFWwindow *window, int key, int __attribute__((unused)) scanm
                 zoom -= 2;
                 break;
             case GLFW_KEY_UP:
-                translate_y += 0.1;
+                translate_y += 0.05;
                 break;
             case GLFW_KEY_DOWN:
-                translate_y -= 0.1;
+                translate_y -= 0.05;
                 break;
             case GLFW_KEY_LEFT:
-                translate_x -= 0.1;
+                translate_x -= 0.05;
                 break;
             case GLFW_KEY_RIGHT:
-                translate_x += 0.1;
+                translate_x += 0.05;
                 break;
         }
     }

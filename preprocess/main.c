@@ -23,8 +23,8 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    const int clmin = 10;
-    const int clmax = 20;
+    const int clmin = 40;
+    const int clmax = 40;
 
     const char *modelFile = "mesh.msh";
     const char *coordsFile = "../build/geo.txt";
@@ -47,7 +47,9 @@ int main(int argc, char **argv) {
     FILE *file = fopen(coordsFile, "w");
 
     // получение координат узлов
-    int rectTag = 8; // конкретная поверхность
+
+    // происходит проблема с тем, что мы не знаем какая конкретная поверхность нужна
+    int rectTag = 10; // конкретная поверхность (для ../materials/data-sample/detail2.stp)
 
     size_t *nodeTags; // массив с глобальными номерами узлов
     size_t nodeTags_n; // количество узлов
