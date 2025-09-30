@@ -1,4 +1,8 @@
-./.vscode
+.vscode
 
-./*.o
-./*.out
+*.o
+*.out
+
+*.txt
+
+*.msh
