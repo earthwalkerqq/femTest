@@ -1,6 +1,6 @@
-./.vscode
+.vscode
 
-./*.o
-./*.out
+*.o
+*.out
 
-./lib*
+lib*

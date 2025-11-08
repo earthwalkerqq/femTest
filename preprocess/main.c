@@ -4,8 +4,6 @@
 
 #define GL_SILENCE_DEPRECATION
 
-#include <GLFW/glfw3.h>
-
 #define DIMENSION 2
 
 size_t findNodeIndex(size_t *nodeTags, size_t nodeTags_n, size_t tag) {
